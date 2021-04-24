@@ -10,7 +10,7 @@ from tkMessageBox import askokcancel #Message Box
 
 def mise_en_place(): 
     "Initialisation de la mise en place de deux boules" 
-    global flag,T,C,CS,M,d,x,y,dx,dy,F,ZERO,B,Cb
+    global flag,T,C,CS,M,d,x,y,dx,dy,F,ZERO,B,Cb, hx, hy
     flag=1 
     Bouton_mise_en_place.config(state=DISABLED)
     Bouton_lancer.config(state=ACTIVE)
@@ -28,12 +28,15 @@ def mise_en_place():
          # F : liste des couleurs (Rouge, Bleu ) X2
 
     x,y,dx,dy=[0],[0],[10, -10],[10,-10] # initialisation de ces quatre listes!
+    hx, hy = [0], [0]
     #les valeurs données à dx et dy le sont en fonction de la première collision
     F=["red","blue", "red","blue"] 
 
     #Initialisation de l'emplacement de la boule rouge et bleu tel que défini dans le questionnaire
     x = [0, L-d]
+    hx = [0, L-d]
     y = [L-d, L-d]
+    hy = [L-d, L-d]
           
     # création d'une bibliothèque des boules: 
     B={} 
@@ -43,8 +46,9 @@ def mise_en_place():
 
 def lancer(): 
     "Question 1: mise en mouvement des boules et gestion des collisions" 
-    global x,y,dx,dy,CC,C,CS,d,ZERO, initial, isQuestion2, initial2, CR, CB, CRB
+    global x,y,dx,dy,CC,C,CS,d,ZERO, initial, isQuestion2, initial2, CR, CB, CRB, T1, T2, T3, T4, M, B, hx, hy
     if flag==1 :
+        
         Bouton_lancer.config(state=DISABLED)
         # mise en mouvement de la boule Bi, avec maintien dans les limites du tableau: 
 
@@ -52,16 +56,28 @@ def lancer():
         if initial:
             i = 0
             j = 1
+            
+            hx[i] = x[i]#On conserve l'historique de progression sur l'axe des X
+            hy[i] = y[i]#On conserve l'historique de progression sur l'axe des Y
+            hx[j] = x[j]#On conserve l'historique de progression sur l'axe des X
+            hy[j] = y[j]#On conserve l'historique de progression sur l'axe des Y
+            
             x[i],y[i]=x[i]+dx[i],y[i] # mise en mouvement de la boule B1 vers la droite
             x[j],y[j]=x[j]-dx[i],y[j] # mise en mouvement de la boule B2 vers la gauche
+            
             can.coords(B[1],x[i],y[i],x[i]+d,y[i]+d)
             can.coords(B[2],x[j],y[j],x[j]+d,y[j]+d)
+            
             
         else:
             #Dans le cas ou on est à un traitement initial relatif à la question 2
             if isQuestion2 and initial2:
                 for i in range(0,2):#Fonctionnement normal pour B1 et B2                    
                         
+                    hx[i] = x[i]#On conserve l'historique de progression sur l'axe des X
+                    hy[i] = y[i]#On conserve l'historique de progression sur l'axe des Y
+                    
+
                     x[i],y[i]=x[i]+dx[i],y[i]+dy[i] # mise en mouvement de la boule Bi 
 
                     #Gestion de rebond horizontal et vertical                
@@ -74,6 +90,11 @@ def lancer():
                     can.coords(B[i+1],x[i],y[i],x[i]+d,y[i]+d) # nouvelles coordonnées de Bi 
                 
                 #Traitement initial pour B3 et B4
+                hx[2] = x[2]#On conserve l'historique de progression sur l'axe des X
+                hy[2] = y[2]#On conserve l'historique de progression sur l'axe des Y
+                hx[3] = x[3]#On conserve l'historique de progression sur l'axe des X
+                hy[3] = y[3]#On conserve l'historique de progression sur l'axe des Y
+                
                 x[2],y[2]=x[2]+dx[2],y[2] # mise en mouvement de la boule B3 vers la droite
                 x[3],y[3]=x[3]-dx[2],y[3] # mise en mouvement de la boule B4 vers la gauche
                 can.coords(B[3],x[2],y[2],x[2]+d,y[2]+d)
@@ -83,6 +104,10 @@ def lancer():
                 for i in range(0,M):
                     
                         
+                    hx[i] = x[i]#On conserve l'historique de progression sur l'axe des X
+                    hy[i] = y[i]#On conserve l'historique de progression sur l'axe des Y
+                    
+
                     x[i],y[i]=x[i]+dx[i],y[i]+dy[i] # mise en mouvement de la boule Bi 
 
                     #Gestion de rebond horizontal et vertical                
@@ -92,6 +117,7 @@ def lancer():
                     if y[i]<0:y[i],dy[i]=0,-dy[i] # rebond sur la bande supérieure '''
 
                     
+                    #print(x, y, dx, dy)
                     can.coords(B[i+1],x[i],y[i],x[i]+d,y[i]+d) # nouvelles coordonnées de Bi 
 
         # gestion de la COLLISION entre Bj et Bi:              
@@ -131,7 +157,7 @@ def lancer():
                         # algorithme de calcul des nouvelles coordonnées de la boule B1 et B2
                         dX,dY=dx[j]-dx[i],dy[j]-dy[i] 
                         dZ=hypot(dX,dY) 
-                        if dZ==0:m=0 # les vitesses sont nulles à l'arrêt du jeu
+                        if dZ==0:m=0 
                         else:
                             k,K=dZ*dZ,X*dX+Y*dY 
                             m=(K+sqrt(K*K-k*(Z*Z-d*d)))/k 
@@ -148,7 +174,53 @@ def lancer():
                         can.CR.config(text='%s'%CR) # visualisation du compteur de collisions  des rouges (CR) 
                         can.CB.config(text='%s'%CB) # visualisation du compteur de collisions des bleus (CB)
                         can.CRB.config(text='%s'%CRB) # visualisation du compteur de collisions mixtes (CRB)
-        #gestion du trou dans les 4 coins
+        
+        #gestion du trou dans les 4 coins        
+        '''for i in range(0, M):
+            #les positions dans laquelle la boule disparait sont: (n + 1, n + 1), (n + 1, m - 1), (m - 1, m - 1), (m - 1, n + 1)
+            # pr le cas de 8 [0-7]: (1,1) (1,6), (6,1), (6, 6)
+            #Entrée dans T1
+            
+            #100 est notre coéfficient graphique
+            
+            
+            if (x[i] >= 0 and x[i] <= 100) and (y[i] >= 0 and y[i] <= 100) :
+                print("T1 hx", hx, hy)
+            
+                
+                #on est dans T1
+                if (hx[i] >= 100 and hx[i] <= 200) : #and (hy[i] >= 100 and hy[i] <= 200) :
+                    print("T1", x[i], y[i])
+                    del B[i+1]
+                    #B.pop(i+1)
+                    M -= 1 
+            elif (x[i] >= 0 and x[i] <= 100) and (y[i] >= L-100 and y[i] <= L) :
+                print("T2 hx", hx, hy)
+                #on est dans T2
+                if (hx[i] >= 100 and hx[i] <= 200) : #and (hy[i] >= L-200 and hy[i] <= L-100) :
+                    print("T2", x[i], y[i])
+                    del B[i+1]
+                    #B.pop(i+1)
+                    M -= 1 
+            elif (x[i] >= L-100 and x[i] <= L)  and (y[i] >= 0 and y[i] <= 100) :
+                print("T3 hx", hx, hy)
+                #on est dans T3
+                if (hx[i] >= L-200 and hx[i] <= L-100)  :#and (hy[i] >= 100 and hy[i] <= 200) :
+                    print("T3", x[i], y[i])
+                    del B[i+1]
+                    #B.pop(i+1)
+                    M -= 1
+            elif (x[i] >= L-100 and x[i] <= L) and (y[i] >= L-100 and y[i] <= L) :
+                print("T4 hx", hx, hy)
+                #on est dans T4
+                if (hx[i] >= L-200 and hx[i] <= L-100) :#and (hy[i] >= L-200 and hy[i] <= L-100) :
+                    print("T4", x[i], y[i])
+                    del B[i+1]
+                    #B.pop(i+1) 
+                    M -= 1'''
+
+
+
 
         
     root.after(10,lancer) 
@@ -159,21 +231,25 @@ def lancer2():
     global isQuestion2, initial2
     isQuestion2 = True
     initial2 = True
-    print("je suis là")
+    #print("je suis là")
     lancer()
 
 def ajout_deux_boules():
     #Initialisation de l'emplacement de la deuxième boule rouge et deuxième boule bleu tel que défini dans le questionnaire
-    print("on est entré ?")
+    #print("on est entré ?")
     global L, d, F, x, y, M, dx, dy
     M = 4
 
-    print(dx, dy)
+    #print(dx, dy)
 
     x.append(0)
+    hx.append(0)
     x.append(L-d)
+    hx.append(L-d)
     y.append(L-d)
+    hy.append(L-d)
     y.append(L-d)
+    hy.append(L-d)
     dx.append(10)
     dx.append(-10)
     dy.append(10)
@@ -184,9 +260,9 @@ def ajout_deux_boules():
     j = 3
     #B[3] = can.create_oval(Nx[0],Ny[0],Nx[0]+d,Ny[0]+d,fill=F[0])
     #B[4] = can.create_oval(Nx[1],Ny[1],Nx[1]+d,Ny[1]+d,fill=F[1])
-    print(dx, dy)
+    #print(dx, dy)
     for i in range(2,M):
-        print("i:", x[i],y[i])
+        #print("i:", x[i],y[i])
         B[i+1]=can.create_oval(x[i],y[i],x[i]+d,y[i]+d,fill=F[i])
 
 
@@ -237,6 +313,14 @@ initial2 = False #Pr la question 2
 isQuestion2 = False
 M,C,CC,CR,CB,CRB=0,0,0,0,0,0 # compteurs de boules et de collisions 
 flag=0 #Rendre les itérations sur la simulation possible
+
+
+
+#Définition des 4 trous
+T1 = [0, L]
+T2 = [L, 0]
+T3 = [0, 0]
+T4 = [L, L]
 # création des widgets "dépendants" : 
 can=Canvas(root,bg='white',height=H,width=L) 
 #Créations des lignes de tableau
