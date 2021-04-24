@@ -23,8 +23,6 @@ def tirage():
     can.delete(ALL)
     T=time() # mémorisation de la valeur du temps au démarrage 
     M=2 # entrée du nombre de boules choisi 
-    if M<10:d=L/10 # limitation à L/10 du diamètre des boules pour M<10 
-    else:d=L/(M+1) # le diamètre diminue en fonction du nombre de boules 
     
     # création de six LISTES: 
         # x: liste des abscisses du coin supérieur gauche des boules 
@@ -36,28 +34,99 @@ def tirage():
         # ZERO: liste de valeurs "zéro"
 
     vitesse = 10
-    x,y,dx,dy=[L-d],[0],[vitesse],[vitesse] # initialisation (valeur du premier terme) de ces quatre listes 
-    F=["blue","red","orange","black"] 
+    x,y,dx,dy=[0],[0],[10, -10],[10,-10] # initialisation (valeur du premier terme) de ces quatre listes, et on s'assure qu'au premier bord, ca vaudra 45!
+    F=["red","blue","orange","black"] 
     ZERO=[0]  
     # extension aux termes de rangs suivants par la méthode "append" (qui allonge la liste,après le dernier terme): 
     # (les distributions en x,dx,dy sont aléatoires; celle en y est régulièrement répartie sur toute la hauteur du jeu) 
-    for i in range(0,int(floor(M/2))):x.append(randrange(0,L/2-D/2-d));y.append(H/M*(i+1));dx.append(vitesse);dy.append(vitesse);F.append(F[i]);ZERO.append(0) 
+    '''for i in range(0,int(floor(M/2))):x.append(randrange(0,L/2-D/2-d));y.append(H/M*(i+1));dx.append(vitesse);dy.append(vitesse);F.append(F[i]);ZERO.append(0) 
+    print("x1", x)
+    print("y1", y)
     for i in range(int(floor(M/2)),M-1):x.append(randrange(L/2+D/2-d,L-d));y.append(H/M*(i+1));dx.append(vitesse);dy.append(vitesse);F.append(F[i]);ZERO.append(0) 
+    print("x2", x)
+    print("y2", y)'''
+    x = [0, L-d]
+    y = [L-d, L-d]
           
     # création d'une bibliothèque des boules: 
     B={} 
     # mise en place des boules: 
-    for i in range(0,M):B[i+1]=can.create_oval(x[i],y[i],x[i]+d,y[i]+d,fill=F[i]) 
-    #Cb=can.create_oval(L/2-D/2,H/2-D/2,L/2+D/2,H/2+D/2,outline="white") # cercle blanc au centre du jeu 
+    for i in range(0,M):B[i+1]=can.create_oval(x[i],y[i],x[i]+d,y[i]+d,fill=F[i])
+    #B[0] = can.create_oval(x[0],y[0],x[0]+d,y[0]+d,fill=F[0])
 
 def tirer(): 
-    "mise en mouvement de l'ensemble des boules et gestion des collisions" 
-    global x,y,dx,dy,CC,C,CS,d,ZERO
+    "mise en mouvement des boules et gestion des collisions" 
+    global x,y,dx,dy,CC,C,CS,d,ZERO, initial
     vitesse = 10
     if flag==1 :
         Bouton_tirer.config(state=DISABLED)
         # mise en mouvement de la boule Bi, avec maintien dans les limites du jeu: 
+        #Impulsion initiale pousser vers la droite pr B1 et vers la gauche pour B2  
+
+        # mise en mouvement de la boule Bi, avec maintien dans les limites du jeu: 
+        if initial:
+            i = 0
+            j = 1
+            x[i],y[i]=x[i]+dx[i],y[i] # mise en mouvement de la boule B1
+            x[j],y[j]=x[j]-dx[i],y[j] # mise en mouvement de la boule B2
+            can.coords(B[1],x[i],y[i],x[i]+d,y[i]+d)
+            can.coords(B[2],x[j],y[j],x[j]+d,y[j]+d)
+            
+        else:
+            for i in range(0,M):
+                
+                x[i],y[i]=x[i]+dx[i],y[i]+dy[i] # mise en mouvement de la boule Bi 
+                
+                if x[i]>L-d:x[i],dx[i]=L-d,-dx[i] # rebond sur la bande droite 
+                if x[i]<0:x[i],dx[i]=0,-dx[i] # rebond sur la bande gauche 
+                if y[i]>H-d:y[i],dy[i]=H-d,-dy[i] # rebond sur la bande inférieure 
+                if y[i]<0:y[i],dy[i]=0,-dy[i] # rebond sur la bande supérieure '''
+
+                
+                can.coords(B[i+1],x[i],y[i],x[i]+d,y[i]+d) # nouvelles coordonnées de Bi 
+
+        # gestion de la COLLISION entre Bj et Bi:              
+        for i in range(1,M): 
+            for j in range(0,i): 
+                if j!=i: 
+                    X,Y=x[j]-x[i],y[j]-y[i] 
+                    Z=hypot(X,Y) # distance entre les centres de Bj et Bi 
+                    if Z<=d: # si cette distance est inférieure au diamètre (d) 
+                        C+=1 # il y a collision (incrémentation du compteur C)
+                        if C == 1:
+                            initial = False
+
+                        CS=round(C/(time()-T+0.01),2) # calcul du nombre de collisions par seconde, depuis le départ 
+
+                        # algorithme de recul de Bj et Bi, sur leurs directions initiales, pour revenir au stricte contact Bj/Bi:
+                        # calcul de la vitesse après collision, pour l'instant laissons cela constant 
+                        dX,dY=dx[j]-dx[i],dy[j]-dy[i] 
+                        dZ=hypot(dX,dY) 
+                        if dZ==0:m=0 # les vitesses sont nulles à l'arrêt du jeu
+                        else:
+                            k,K=dZ*dZ,X*dX+Y*dY 
+                            m=(K+sqrt(K*K-k*(Z*Z-d*d)))/k 
+                        x[i],y[i],x[j],y[j]=x[i]-m*dx[i],y[i]-m*dy[i],x[j]-m*dx[j],y[j]-m*dy[j] 
+                        #x[i],y[i],x[j],y[j]=x[j]+m*dx[j],y[j]+m*dy[j],x[j]-m*dx[j],y[j]-m*dy[j] 
+                        
+                        
+                        # algorithme de changement de direction des boules Bj et Bi après collision 
+                        xx,xy,yy=X*X/Z/Z,X*Y/Z/Z,Y*Y/Z/Z 
+                        dx[i],dy[i],dx[j],dy[j]=yy*dx[i]-xy*dy[i]+xx*dx[j]+xy*dy[j],-xy*dx[i]+xx*dy[i]+xy*dx[j]+yy*dy[j],xx*dx[i]+xy*dy[i]+yy*dx[j]-xy*dy[j],xy*dx[i]+yy*dy[i]-xy*dx[j]+xx*dy[j] 
+                        
+
+                        can.C.config(text='%s'%C) # visualisation du compteur de collisions (C) 
+                        can.CS.config(text='%s'%CS) # visualisation du compteur de collisions par seconde (CS) 
+
+
+
+                
+
+
+        
+        '''can.coords(B[i+1],x[i],y[i],x[i]+d,y[i]+d)
         for i in range(0,M): 
+
             x[i],y[i]=x[i]+dx[i],y[i]+dy[i] # mise en mouvement de la boule Bi 
             dx[i],dy[i]=f*dx[i],f*dy[i] # freinage (f) 
 
@@ -109,7 +178,7 @@ def tirer():
                         dx[i],dy[i],dx[j],dy[j]=yy*dx[i]-xy*dy[i]+xx*dx[j]+xy*dy[j],-xy*dx[i]+xx*dy[i]+xy*dx[j]+yy*dy[j],xx*dx[i]+xy*dy[i]+yy*dx[j]-xy*dy[j],xy*dx[i]+yy*dy[i]-xy*dx[j]+xx*dy[j] 
   
                         can.C.config(text='%s'%C) # visualisation du compteur de collisions (C) 
-                        can.CS.config(text='%s'%CS) # visualisation du compteur de collisions par seconde (CS) 
+                        can.CS.config(text='%s'%CS) # visualisation du compteur de collisions par seconde (CS)''' 
         
     root.after(10,tirer) 
  
@@ -139,6 +208,7 @@ root.title('-------------Table de billard: Altius Technologies------------------
 L=800 # longueur du jeu 
 H=L # largeur du jeu 
 d=50 # diamètre de la première boule 
+initial = True
 D=L/6 # diamètre du cercle blanc
 f,s=0.999,0.3 # coefficient de freinage et seuil d'arrêt 
 M,C,CC=0,0,0 # compteurs de boules et de collisions 
