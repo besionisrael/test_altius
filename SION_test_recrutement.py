@@ -1,50 +1,36 @@
 #! /usr/bin/env python 
 # -*- coding: Latin-1 -*- 
-# Python version 2.4.2 
-# Tk version 8.4 
-# IDLE version 1.1.2 
-  
 
-# "BILLARD Français", avec une amélioration pour contrer les phénomènes "d'adhérence". 
   
-  
-from Tkinter import* 
-from math import hypot,sqrt,floor 
+from Tkinter import* #Bibliothèque graphique Python
+from math import hypot,sqrt,floor  
 from random import randrange 
 from time import time 
-from tkMessageBox import askokcancel
+from tkMessageBox import askokcancel #Message Box
 
-def tirage(): 
-    "mise en place d'un nombre variable de boules de couleurs différentes" 
+def mise_en_place(): 
+    "Initialisation de la mise en place de deux boules" 
     global flag,T,C,CS,M,d,x,y,dx,dy,F,ZERO,B,Cbn,vitesse
     flag=1 
-    Bouton_tirage.config(state=DISABLED)
-    Bouton_tirer.config(state=ACTIVE)
+    Bouton_mise_en_place.config(state=DISABLED)
+    Bouton_lancer.config(state=ACTIVE)
     can.delete(ALL)
     T=time() # mémorisation de la valeur du temps au démarrage 
-    M=2 # entrée du nombre de boules choisi 
+    M=2 # entrée du nombre de boules choisi, en prévision à un eventuelle amélioration du code
     
-    # création de six LISTES: 
-        # x: liste des abscisses du coin supérieur gauche des boules 
-        # y: liste des ordonnées du coin supérieur gauche des boules 
-        # dx: liste des vitesses horizontales des boules 
-        # dy: liste des vitesses verticales des boules 
-        # F: liste de 4 couleurs différentes 
-        # vitesse: Définit la vitesse possible lors de l'execution de l'algo, Celui ci doit être déclarée
-        # ZERO: liste de valeurs "zéro"
+    
+    #Variables opérationnelles:
+         # x: liste des abscisses du coin supérieur gauche des boules 
+         # y: liste des ordonnées du coin supérieur gauche des boules 
+         # dx: liste des vitesses horizontales des boules 
+         # dy: liste des vitesses verticales des boules 
+         # F : liste des couleurs
 
-    vitesse = 10
-    x,y,dx,dy=[0],[0],[10, -10],[10,-10] # initialisation (valeur du premier terme) de ces quatre listes, et on s'assure qu'au premier bord, ca vaudra 45!
-    F=["red","blue","orange","black"] 
-    ZERO=[0]  
-    # extension aux termes de rangs suivants par la méthode "append" (qui allonge la liste,après le dernier terme): 
-    # (les distributions en x,dx,dy sont aléatoires; celle en y est régulièrement répartie sur toute la hauteur du jeu) 
-    '''for i in range(0,int(floor(M/2))):x.append(randrange(0,L/2-D/2-d));y.append(H/M*(i+1));dx.append(vitesse);dy.append(vitesse);F.append(F[i]);ZERO.append(0) 
-    print("x1", x)
-    print("y1", y)
-    for i in range(int(floor(M/2)),M-1):x.append(randrange(L/2+D/2-d,L-d));y.append(H/M*(i+1));dx.append(vitesse);dy.append(vitesse);F.append(F[i]);ZERO.append(0) 
-    print("x2", x)
-    print("y2", y)'''
+    x,y,dx,dy=[0],[0],[10, -10],[10,-10] # initialisation de ces quatre listes, et on s'assure qu'au premier bord, ca vaudra 45!
+    #les valeurs données à dx et dy le sont en fonction de la première collision
+    F=["red","blue", "red", "blue"] 
+
+    #Initialisation de l'emplacement de la boule rouge et bleu tel que défini dans le questionnaire
     x = [0, L-d]
     y = [L-d, L-d]
           
@@ -52,23 +38,21 @@ def tirage():
     B={} 
     # mise en place des boules: 
     for i in range(0,M):B[i+1]=can.create_oval(x[i],y[i],x[i]+d,y[i]+d,fill=F[i])
-    #B[0] = can.create_oval(x[0],y[0],x[0]+d,y[0]+d,fill=F[0])
+    #Fin de la mise en place
 
-def tirer(): 
+def lancer(): 
     "mise en mouvement des boules et gestion des collisions" 
     global x,y,dx,dy,CC,C,CS,d,ZERO, initial
-    vitesse = 10
     if flag==1 :
-        Bouton_tirer.config(state=DISABLED)
-        # mise en mouvement de la boule Bi, avec maintien dans les limites du jeu: 
-        #Impulsion initiale pousser vers la droite pr B1 et vers la gauche pour B2  
+        Bouton_lancer.config(state=DISABLED)
+        # mise en mouvement de la boule Bi, avec maintien dans les limites du tableau: 
 
-        # mise en mouvement de la boule Bi, avec maintien dans les limites du jeu: 
+        #Impulsion initiale pousser vers la droite pr B1 et vers la gauche pour B2  
         if initial:
             i = 0
             j = 1
-            x[i],y[i]=x[i]+dx[i],y[i] # mise en mouvement de la boule B1
-            x[j],y[j]=x[j]-dx[i],y[j] # mise en mouvement de la boule B2
+            x[i],y[i]=x[i]+dx[i],y[i] # mise en mouvement de la boule B1 vers la droite
+            x[j],y[j]=x[j]-dx[i],y[j] # mise en mouvement de la boule B2 vers la gauche
             can.coords(B[1],x[i],y[i],x[i]+d,y[i]+d)
             can.coords(B[2],x[j],y[j],x[j]+d,y[j]+d)
             
@@ -76,7 +60,8 @@ def tirer():
             for i in range(0,M):
                 
                 x[i],y[i]=x[i]+dx[i],y[i]+dy[i] # mise en mouvement de la boule Bi 
-                
+
+                #Gestion de rebond horizontal et vertical                
                 if x[i]>L-d:x[i],dx[i]=L-d,-dx[i] # rebond sur la bande droite 
                 if x[i]<0:x[i],dx[i]=0,-dx[i] # rebond sur la bande gauche 
                 if y[i]>H-d:y[i],dy[i]=H-d,-dy[i] # rebond sur la bande inférieure 
@@ -93,13 +78,13 @@ def tirer():
                     Z=hypot(X,Y) # distance entre les centres de Bj et Bi 
                     if Z<=d: # si cette distance est inférieure au diamètre (d) 
                         C+=1 # il y a collision (incrémentation du compteur C)
-                        if C == 1:
+                        if C == 1: 
+                            #Afin de limiter l'impulsion de départ
                             initial = False
 
                         CS=round(C/(time()-T+0.01),2) # calcul du nombre de collisions par seconde, depuis le départ 
 
-                        # algorithme de recul de Bj et Bi, sur leurs directions initiales, pour revenir au stricte contact Bj/Bi:
-                        # calcul de la vitesse après collision, pour l'instant laissons cela constant 
+                        # algorithme de calcul des nouvelles coordonnées de la boule B1 et B2
                         dX,dY=dx[j]-dx[i],dy[j]-dy[i] 
                         dZ=hypot(dX,dY) 
                         if dZ==0:m=0 # les vitesses sont nulles à l'arrêt du jeu
@@ -107,7 +92,6 @@ def tirer():
                             k,K=dZ*dZ,X*dX+Y*dY 
                             m=(K+sqrt(K*K-k*(Z*Z-d*d)))/k 
                         x[i],y[i],x[j],y[j]=x[i]-m*dx[i],y[i]-m*dy[i],x[j]-m*dx[j],y[j]-m*dy[j] 
-                        #x[i],y[i],x[j],y[j]=x[j]+m*dx[j],y[j]+m*dy[j],x[j]-m*dx[j],y[j]-m*dy[j] 
                         
                         
                         # algorithme de changement de direction des boules Bj et Bi après collision 
@@ -116,78 +100,16 @@ def tirer():
                         
 
                         can.C.config(text='%s'%C) # visualisation du compteur de collisions (C) 
-                        can.CS.config(text='%s'%CS) # visualisation du compteur de collisions par seconde (CS) 
-
-
-
-                
-
-
+                        can.CS.config(text='%s'%CS) # visualisation du compteur de collisions par seconde (CS)
         
-        '''can.coords(B[i+1],x[i],y[i],x[i]+d,y[i]+d)
-        for i in range(0,M): 
-
-            x[i],y[i]=x[i]+dx[i],y[i]+dy[i] # mise en mouvement de la boule Bi 
-            dx[i],dy[i]=f*dx[i],f*dy[i] # freinage (f) 
-
-            if dx==ZERO and dy==ZERO:stop() # arrêt lorsque toutes les vitesses sont nulles
-            if hypot(dx[i],dy[i])<s: dx[i],dy[i]=0,0 # immobilisation lorsque la vitesse devient inférieure au seuil (s) 
-            if x[i]>L-d:x[i],dx[i]=L-d,-dx[i] # rebond sur la bande droite 
-            if x[i]<0:x[i],dx[i]=0,-dx[i] # rebond sur la bande gauche 
-            if y[i]>H-d:y[i],dy[i]=H-d,-dy[i] # rebond sur la bande inférieure 
-            if y[i]<0:y[i],dy[i]=0,-dy[i] # rebond sur la bande supérieure 
-
-            can.coords(B[i+1],x[i],y[i],x[i]+d,y[i]+d) # nouvelles coordonnées de Bi 
-        
-        # gestion de la COLLISION entre Bj et Bi: 
-        for i in range(1,M): 
-            for j in range(0,i): 
-                if j!=i: 
-                    X,Y=x[j]-x[i],y[j]-y[i] 
-                    Z=hypot(X,Y) # distance entre les centres de Bj et Bi 
-                    if Z<=d: # si cette distance est inférieure au diamètre (d) 
-                        C+=1 # il y a collision (incrémentation du compteur C) 
-                        CS=round(C/(time()-T+0.01),2) # calcul du nombre de collisions par seconde, depuis le départ 
-
-                        # algorithme de recul de Bj et Bi, sur leurs directions initiales, pour revenir au stricte contact Bj/Bi:
-                        # calcul de la vitesse après collision, pour l'instant laissons cela constant 
-                        dX,dY=vitesse,vitesse
-                        dZ=hypot(dX,dY) 
-                        if dZ==0:m=0 # les vitesses sont nulles à l'arrêt du jeu
-                        else:
-                            k,K=dZ*dZ,X*dX+Y*dY 
-                            m=(K+sqrt(K*K-k*(Z*Z-d*d)))/k 
-                        x[i],y[i],x[j],y[j]=x[i]-m*dx[i],y[i]-m*dy[i],x[j]-m*dx[j],y[j]-m*dy[j] 
-                        
-                        # deuxième passage de cet algorithme: 
-                        # (une étude de la cinématique de la collision montre qu'après un "stricte contact", suivi du changement de direction des boules, 
-                        # il peut exister des cas de figure où l'on se retrouve avec Z<d au coup suivant; 
-                        # il s'en suit un phénomène d'adhérence, pouvant aller jusqu'à leur immobilisation temporaire. 
-                        # Pour résoudre ce probléme, aussi simplement que possible, on a pris le parti de procéder à un recul supplémentaire pour revenir à Z>d) 
-                        X,Y=x[j]-x[i],y[j]-y[i] 
-                        Z=hypot(X,Y) 
-                        if Z<=d: 
-                            if dZ==0:m=0
-                            else:
-                                k,K=dZ*dZ,X*dX+Y*dY 
-                                m=(K+sqrt(K*K-k*(Z*Z-d*d)))/k 
-                            x[i],y[i],x[j],y[j]=x[i]-m*dx[i],y[i]-m*dy[i],x[j]-m*dx[j],y[j]-m*dy[j] 
-  
-                        # algorithme de changement de direction des boules Bj et Bi après collision 
-                        xx,xy,yy=X*X/Z/Z,X*Y/Z/Z,Y*Y/Z/Z 
-                        dx[i],dy[i],dx[j],dy[j]=yy*dx[i]-xy*dy[i]+xx*dx[j]+xy*dy[j],-xy*dx[i]+xx*dy[i]+xy*dx[j]+yy*dy[j],xx*dx[i]+xy*dy[i]+yy*dx[j]-xy*dy[j],xy*dx[i]+yy*dy[i]-xy*dx[j]+xx*dy[j] 
-  
-                        can.C.config(text='%s'%C) # visualisation du compteur de collisions (C) 
-                        can.CS.config(text='%s'%CS) # visualisation du compteur de collisions par seconde (CS)''' 
-        
-    root.after(10,tirer) 
+    root.after(10,lancer) 
  
 def stop(): 
     "" 
     global flag,d
     flag=0 
-    Bouton_tirage.config(state=ACTIVE)
-#    Bouton_tirer.config(state=ACTIVE)
+    Bouton_mise_en_place.config(state=ACTIVE)
+#    Bouton_lancer.config(state=ACTIVE)
     can.delete(ALL) # effacement du contenu de la fenêtre 
     C=0;can.C.config(text='%s'%C)
     CS=0;can.CS.config(text='%s'%CS)
@@ -212,7 +134,7 @@ initial = True
 D=L/6 # diamètre du cercle blanc
 f,s=0.999,0.3 # coefficient de freinage et seuil d'arrêt 
 M,C,CC=0,0,0 # compteurs de boules et de collisions 
-flag=0 
+flag=0 #Rendre les itérations sur la simulation possible
 # création des widgets "dépendants" : 
 can=Canvas(root,bg='dark green',height=H,width=L) 
 can.grid(row=1,column=0,rowspan=2) 
@@ -232,10 +154,10 @@ can.C=Label(can2,text='0',fg='white',bg='brown')
 can.C.pack(side=BOTTOM) 
 Label(can2,text="Nombre de collisions",fg='white',bg='brown').pack(side=BOTTOM) 
   
-Bouton_tirer=Button(can2,text='Lancez l\'algorithme !',height=2,width=25,relief=GROOVE,bg="white",activebackground="dark green",activeforeground="white",state=DISABLED,command=tirer) 
-Bouton_tirer.pack(padx=5,pady=5,side=BOTTOM,anchor=SW) 
-Bouton_tirage=Button(can2,text='Mettre les 2 boules en place !',height=2,width=25,relief=GROOVE,bg="white",activebackground="dark green",activeforeground="white",state=ACTIVE,command=tirage) 
-Bouton_tirage.pack(padx=5,pady=5,side=BOTTOM,anchor=SW) 
+Bouton_lancer=Button(can2,text='Lancez l\'algorithme !',height=2,width=25,relief=GROOVE,bg="white",activebackground="dark green",activeforeground="white",state=DISABLED,command=lancer) 
+Bouton_lancer.pack(padx=5,pady=5,side=BOTTOM,anchor=SW) 
+Bouton_mise_en_place=Button(can2,text='Mettre les 2 boules en place !',height=2,width=25,relief=GROOVE,bg="white",activebackground="dark green",activeforeground="white",state=ACTIVE,command=mise_en_place) 
+Bouton_mise_en_place.pack(padx=5,pady=5,side=BOTTOM,anchor=SW) 
   
 
   
