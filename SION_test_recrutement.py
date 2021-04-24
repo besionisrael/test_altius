@@ -10,10 +10,11 @@ from tkMessageBox import askokcancel #Message Box
 
 def mise_en_place(): 
     "Initialisation de la mise en place de deux boules" 
-    global flag,T,C,CS,M,d,x,y,dx,dy,F,ZERO,B,Cbn,vitesse
+    global flag,T,C,CS,M,d,x,y,dx,dy,F,ZERO,B,Cb
     flag=1 
     Bouton_mise_en_place.config(state=DISABLED)
     Bouton_lancer.config(state=ACTIVE)
+    Bouton_lancer2.config(state=ACTIVE)
     can.delete(ALL)
     T=time() # mémorisation de la valeur du temps au démarrage 
     M=2 # entrée du nombre de boules choisi, en prévision à un eventuelle amélioration du code
@@ -22,11 +23,11 @@ def mise_en_place():
     #Variables opérationnelles:
          # x: liste des abscisses du coin supérieur gauche des boules 
          # y: liste des ordonnées du coin supérieur gauche des boules 
-         # dx: liste des vitesses horizontales des boules 
-         # dy: liste des vitesses verticales des boules 
-         # F : liste des couleurs
+         # dx: Coefficient de lancement horizontal 
+         # dy: Coefficient de lancement vertical
+         # F : liste des couleurs (Rouge, Bleu ) X2
 
-    x,y,dx,dy=[0],[0],[10, -10],[10,-10] # initialisation de ces quatre listes, et on s'assure qu'au premier bord, ca vaudra 45!
+    x,y,dx,dy=[0],[0],[10, -10],[10,-10] # initialisation de ces quatre listes!
     #les valeurs données à dx et dy le sont en fonction de la première collision
     F=["red","blue", "red", "blue"] 
 
@@ -41,8 +42,8 @@ def mise_en_place():
     #Fin de la mise en place
 
 def lancer(): 
-    "mise en mouvement des boules et gestion des collisions" 
-    global x,y,dx,dy,CC,C,CS,d,ZERO, initial
+    "Question 1: mise en mouvement des boules et gestion des collisions" 
+    global x,y,dx,dy,CC,C,CS,d,ZERO, initial, isQuestion2
     if flag==1 :
         Bouton_lancer.config(state=DISABLED)
         # mise en mouvement de la boule Bi, avec maintien dans les limites du tableau: 
@@ -81,6 +82,10 @@ def lancer():
                         if C == 1: 
                             #Afin de limiter l'impulsion de départ
                             initial = False
+                            #SI ON EST DANS LE CAS DE LA QUESTION 2, introduire deux boules supplémentaires
+                            if isQuestion2:
+                                pass
+                                #ajout_deux_boules()
 
                         CS=round(C/(time()-T+0.01),2) # calcul du nombre de collisions par seconde, depuis le départ 
 
@@ -104,6 +109,36 @@ def lancer():
         
     root.after(10,lancer) 
  
+
+def lancer2():
+    ''' Extension Question 2 '''
+    isQuestion2 = True
+    lancer()
+
+'''def ajout_deux_boules():
+    #Initialisation de l'emplacement de la deuxième boule rouge et deuxième boule bleu tel que défini dans le questionnaire
+    global L, d, F, x, y
+
+    Nx = [0, L-d]
+    '''x.append(0)
+    x.append(L-d)
+    y.append(L-d)
+    y.append(L-d)'''
+    Ny = [L-d, L-d]
+
+    #Mise en place aux places de base
+    for i in range(2,4):B[i]=can.create_oval(Nx[i],Ny[i],Nx[i]+d,Ny[i]+d,fill=F[i])
+    #Mise en mouvement
+    i = 2
+    j = 3
+    x[i],y[i]=x[i]+dx[i-2],y[i-2] # mise en mouvement de la boule B3 vers la droite
+    x[j],y[j]=x[j]-dx[i],y[j-2] # mise en mouvement de la boule B4 vers la gauche
+    can.coords(B[1],x[i],y[i],x[i]+d,y[i]+d)
+    can.coords(B[2],x[j],y[j],x[j]+d,y[j]+d)'''
+
+        
+
+
 def stop(): 
     "" 
     global flag,d
@@ -126,11 +161,14 @@ def quitter():
 root = Tk() 
 root.title('-------------Table de billard: Altius Technologies-------------------') 
   
-# données initiales: 
-L=800 # longueur du jeu 
-H=L # largeur du jeu 
+# DONNEES INITALES : 
+#Taille du tableau
+n = 8
+L= n * 100 # longueur du contenu graphique (on le multiplie par 100 pour le rendre meilleur) 
+H=L # largeur du tableau 
 d=50 # diamètre de la première boule 
 initial = True
+isQuestion2 = False
 D=L/6 # diamètre du cercle blanc
 f,s=0.999,0.3 # coefficient de freinage et seuil d'arrêt 
 M,C,CC=0,0,0 # compteurs de boules et de collisions 
@@ -153,11 +191,18 @@ Label(can2,text="Collisions par seconde",fg='white',bg='brown').pack(side=BOTTOM
 can.C=Label(can2,text='0',fg='white',bg='brown') 
 can.C.pack(side=BOTTOM) 
 Label(can2,text="Nombre de collisions",fg='white',bg='brown').pack(side=BOTTOM) 
+
+Bouton_lancer2=Button(can2,text='Question 2: Lancez l\'algorithme !',height=2,width=25,relief=GROOVE,bg="white",activebackground="dark green",activeforeground="white",state=DISABLED,command=lancer2) 
+Bouton_lancer2.pack(padx=5,pady=5,side=BOTTOM,anchor=SW) 
   
-Bouton_lancer=Button(can2,text='Lancez l\'algorithme !',height=2,width=25,relief=GROOVE,bg="white",activebackground="dark green",activeforeground="white",state=DISABLED,command=lancer) 
+Bouton_lancer=Button(can2,text='Question 1: Lancez l\'algorithme !',height=2,width=25,relief=GROOVE,bg="white",activebackground="dark green",activeforeground="white",state=DISABLED,command=lancer) 
 Bouton_lancer.pack(padx=5,pady=5,side=BOTTOM,anchor=SW) 
+
 Bouton_mise_en_place=Button(can2,text='Mettre les 2 boules en place !',height=2,width=25,relief=GROOVE,bg="white",activebackground="dark green",activeforeground="white",state=ACTIVE,command=mise_en_place) 
 Bouton_mise_en_place.pack(padx=5,pady=5,side=BOTTOM,anchor=SW) 
+
+
+
   
 
   
