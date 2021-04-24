@@ -115,15 +115,15 @@ def lancer2():
     isQuestion2 = True
     lancer()
 
-'''def ajout_deux_boules():
+def ajout_deux_boules():
     #Initialisation de l'emplacement de la deuxième boule rouge et deuxième boule bleu tel que défini dans le questionnaire
     global L, d, F, x, y
 
     Nx = [0, L-d]
-    '''x.append(0)
+    x.append(0)
     x.append(L-d)
     y.append(L-d)
-    y.append(L-d)'''
+    y.append(L-d)
     Ny = [L-d, L-d]
 
     #Mise en place aux places de base
@@ -134,7 +134,7 @@ def lancer2():
     x[i],y[i]=x[i]+dx[i-2],y[i-2] # mise en mouvement de la boule B3 vers la droite
     x[j],y[j]=x[j]-dx[i],y[j-2] # mise en mouvement de la boule B4 vers la gauche
     can.coords(B[1],x[i],y[i],x[i]+d,y[i]+d)
-    can.coords(B[2],x[j],y[j],x[j]+d,y[j]+d)'''
+    can.coords(B[2],x[j],y[j],x[j]+d,y[j]+d)
 
         
 
